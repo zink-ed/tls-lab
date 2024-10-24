@@ -56,8 +56,7 @@ def pack_extension(ty: int, data: bytes) -> bytes:
 
 def unpack_extension(data: bytes) -> tuple[ExtensionType, bytes, bytes]:
     """
-    Unpacks variable length data, returning a (type, data, remainder) tuple.
-    `len_width` is the number of bytes to use for the length.
+    Unpacks TLS extension data.
 
     Specified in RFC8446 section 4.2.
     """
