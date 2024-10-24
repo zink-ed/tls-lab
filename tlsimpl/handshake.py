@@ -81,6 +81,67 @@ def send_client_hello(sock, key_exchange_pubkey: bytes) -> None:
 
     sock.send_handshake_record(HandshakeType.CLIENT_HELLO, b"".join(packet))
 
+def extract_ext(extensions, data):
+     
+    pub_key = '0'
+
+    while (len(data) > 0):
+        ext_type = data[0:4]
+        ext_len = data[4:8]
+        extensions[ext_type] = data[0:8+ext_len]
+        data = data[8+ext_len:]
+
+    '''
+    ext_type = data[0:incr(2)*2]
+    match ext_type:
+        case('002b'):
+            sup_len = int(data[tracker*2: incr(2)*2], 16)
+            incr(sup_len)
+        case('0033'):
+            incr(4)
+            pub_len = int(data[tracker*2: incr(2)*2], 16) 
+            pub_key = data[tracker*2: incr(pub_len)*2]
+
+    '''
+
+    return extensions
+
+def parse_pub(key_dict, data):
+    key_dict["key len"] = data[4:8]
+    key_dict["x25519"] = data[8:12]
+    key_dict["pub len"] = data[12:16]
+    key_dict["pub key"] = data[16:]
+    return key_dict
+
+
+def parse_server(data):
+
+    server_hel ={}
+
+    count = int.from_bytes(5, "big")
+    server_hel["record"] = data[0:count]
+    data = data[count:]
+    count = int.from_bytes(2, "big")
+    server_hel["server ver"] = data[0:count]
+    data = data[count:]
+    count = int.from_bytes(32, "big")
+    server_hel["server rand"] = data[0:count]
+    data = data[count:]
+    server_hel["id"] = unpack_varlen(data, 1)[0]
+    data = unpack_varlen(data)[1]
+    server_hel["cipher suite"] = unpack_varlen(data)[0]
+    data = unpack_varlen(data)[1]
+    server_hel["compression"] = unpack_varlen(data, 1)[0]
+    data = unpack_varlen(data)[1]
+
+    ext = {}
+    extract_ext(ext, data)
+
+    key_dict = {}
+    key_dict = parse_pub(key_dict, ext['0033'])
+
+    return server_hel, ext, key_dict
+
 
 def recv_server_hello(sock: client.TLSSocket) -> bytes:
     """
@@ -93,7 +154,10 @@ def recv_server_hello(sock: client.TLSSocket) -> bytes:
     (ty, data) = sock.recv_handshake_record()
     assert ty == HandshakeType.SERVER_HELLO
     # TODO: parse server hello and find server pubkey
-    peer_pubkey = b"???"
+
+    server_data, extension_data, key_share_data = parse_server(data)
+
+    peer_pubkey = key_share_data['pub key']
     return peer_pubkey
 
 
