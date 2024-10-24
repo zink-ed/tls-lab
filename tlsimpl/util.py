@@ -58,6 +58,8 @@ def unpack_extension(data: bytes) -> tuple[ExtensionType, bytes, bytes]:
     """
     Unpacks TLS extension data.
 
+    Returns an (extension type, extension data, remainder) tuple.
+
     Specified in RFC8446 section 4.2.
     """
     ty = int.from_bytes(data[:2], "big")
