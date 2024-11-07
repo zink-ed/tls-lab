@@ -173,7 +173,7 @@ def key_derivation(transcript_hash, shared_secret):
 
     early_secret = sha384_hkdf_extract(00, 00)
     empty_hash = hashes.SHA384("")
-    hello_hash = hashes.SHA384(message)
+    hello_hash = transcript_hash
 
     derived_secret = labeled_sha384_hkdf(early_secret, "derived", empty_hash, 48)
     handshake_secret = sha384_hkdf_extract(derived_secret, shared_secret)
