@@ -10,6 +10,7 @@ from tlsimpl import client, cryptoimpl, util
 from tlsimpl.consts import *
 from tlsimpl.util import *
 import os
+from tlsimpl.cryptoimpl import *
 
 def extension(publickey):
 
@@ -160,5 +161,27 @@ def perform_handshake(sock: client.TLSSocket) -> None:
     (sock.client_params, sock.server_params) = cryptoimpl.derive_aes_params(
         shared_secret, transcript_hash
     )
+
+    key_derivation()
+
     # receive an encrypted handshake record to verify decryption works
     print("got record:", sock.recv_handshake_record())
+
+def key_derivation(transcript_hash, shared_secret):
+
+    our_key = generate_x25519_keypair()
+
+    early_secret = sha384_hkdf_extract(00, 00)
+    empty_hash = hashes.SHA384("")
+    hello_hash = hashes.SHA384(message)
+
+    derived_secret = labeled_sha384_hkdf(early_secret, "derived", empty_hash, 48)
+    handshake_secret = sha384_hkdf_extract(derived_secret, shared_secret)
+    client_secret = labeled_sha384_hkdf(handshake_secret, "c hs traffic", hello_hash, 48)
+    server_secret = labeled_sha384_hkdf(handshake_secret, "s hs traffic", hello_hash, 48)
+    client_handshake_key = labeled_sha384_hkdf(client_secret, "key", "", 32)
+    server_handskae_key = labeled_sha384_hkdf(server_secret, "key", "",32)
+    client_handshake_iv = labeled_sha384_hkdf(client_secret, "iv", "", 12)
+    server_handshake_iv = labeled_sha384_hkdf(server_secret, "iv", "", 12)
+
+
