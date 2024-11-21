@@ -132,14 +132,22 @@ def derive_application_params(
     Used for application key derivation.
     """
     # TODO: derive client/server key/iv
-    client_secret = b"???"
-    server_secret = b"???"
-    client_key = b"???"
-    client_iv = b"???"
-    server_key = b"???"
-    server_iv = b"???"
-    client_params = AESParams(client_secret, client_key, util.unpack(client_iv))
-    server_params = AESParams(server_secret, server_key, util.unpack(server_iv))
+
+    empty_hash = hashlib.sha384(b'').digest()
+    early_secret = sha384_hkdf_extract(b'', b'\x00'*48)
+
+    derived_secret = labeled_sha384_hkdf(handshake_secret, b"derived", empty_hash, 48)
+    master_secret = labeled_sha384_hkdf(derived_secret, early_secret)
+    client_secret = labeled_sha384_hkdf(master_secret, b"c ap traffic", transcript_hash, 48)
+    server_secret = labeled_sha384_hkdf(master_secret, b"s ap traffic", transcript_hash, 48)
+
+    client_application_key = labeled_sha384_hkdf(client_secret, b"key", b"", 32)
+    server_application_key = labeled_sha384_hkdf(server_secret, b"key", b"",32)
+    client_application_iv = labeled_sha384_hkdf(client_secret, b"iv", b"", 12)
+    server_application_iv = labeled_sha384_hkdf(server_secret, b"iv", b"", 12)
+    
+    client_params = AESParams(client_secret, client_application_key, util.unpack(client_application_iv))
+    server_params = AESParams(server_secret, server_application_key, util.unpack(server_application_iv))
     return (client_params, server_params)
 
 
@@ -163,8 +171,7 @@ def compute_finish(secret: bytes, transcript_hash: bytes) -> bytes:
     Takes in the client/server secret as well as the transcript hash.
     """
     # TODO: compute HMAC
-    finished_key = labeled_sha384_hkdf(transcript_hash, b'finished', b'',48)
-    finished_hash = hashlib.sha384(finished_key).digest()
-    verify_data = b'' # This needs to be finished
+    finished_key = labeled_sha384_hkdf(secret, b'finished', b'',48)
+    verify_data = hmac.new(finished_key, transcript_hash, hashlib.sha384).digest()
 
     return verify_data

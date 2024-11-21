@@ -159,7 +159,7 @@ def recv_server_info(sock: client.TLSSocket) -> None:
     sock.recv_handshake_record()
     sock.recv_handshake_record()
     sock.recv_handshake_record()
-    # TODO: implement
+
 
 
 def finish_handshake(sock: client.TLSSocket, handshake_secret: bytes) -> None:
@@ -169,7 +169,10 @@ def finish_handshake(sock: client.TLSSocket, handshake_secret: bytes) -> None:
     Takes in the shared secret from key exchange.
     """
     # TODO: implement
-
+    sock.recv_handshake_record()
+    sock.send_handshake_record(compute_finish(handshake_secret,sock.transcript_hash.digest()))
+    
+    
     
 
 
