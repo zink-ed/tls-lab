@@ -134,10 +134,9 @@ def derive_application_params(
     # TODO: derive client/server key/iv
 
     empty_hash = hashlib.sha384(b'').digest()
-    early_secret = sha384_hkdf_extract(b'', b'\x00'*48)
 
     derived_secret = labeled_sha384_hkdf(handshake_secret, b"derived", empty_hash, 48)
-    master_secret = sha384_hkdf_extract(derived_secret, early_secret)
+    master_secret = sha384_hkdf_extract(derived_secret, b"\x00" * 48)
     client_secret = labeled_sha384_hkdf(master_secret, b"c ap traffic", transcript_hash, 48)
     server_secret = labeled_sha384_hkdf(master_secret, b"s ap traffic", transcript_hash, 48)
 
