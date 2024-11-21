@@ -170,7 +170,7 @@ def finish_handshake(sock: client.TLSSocket, handshake_secret: bytes) -> None:
     """
     # TODO: implement
     sock.recv_handshake_record()
-    sock.send_handshake_record(compute_finish(handshake_secret,sock.transcript_hash.digest()))
+    sock.send_handshake_record(HandshakeType.FINISHED,compute_finish(handshake_secret,sock.transcript_hash.digest()))
     
     
     
