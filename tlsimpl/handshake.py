@@ -156,9 +156,9 @@ def recv_server_info(sock: client.TLSSocket) -> None:
 
     Also verifies the certificate's validity.
     """
-    sock.recv_handshake_record()
-    sock.recv_handshake_record()
-    sock.recv_handshake_record()
+    encrypted_extensions = sock.recv_handshake_record()
+    server_certificate = sock.recv_handshake_record()
+    certificate_verify = sock.recv_handshake_record()
     #sock.recv_handshake_record()
 
 
@@ -171,8 +171,9 @@ def finish_handshake(sock: client.TLSSocket, handshake_secret: bytes) -> None:
     """
     # TODO: implement
     sock.recv_handshake_record()
-    sock.send_handshake_record(HandshakeType.FINISHED,compute_finish(handshake_secret,sock.transcript_hash.digest()))
-    derive_application_params(handshake_secret, sock.transcript_hash.digest())
+    transcript_hash = sock.transcript_hash.digest()
+    sock.send_handshake_record(HandshakeType.FINISHED,compute_finish(handshake_secret, transcript_hash))
+    (sock.client_params, sock.server_params) = derive_application_params(handshake_secret, transcript_hash)
     
     
 
