@@ -159,6 +159,7 @@ def recv_server_info(sock: client.TLSSocket) -> None:
     sock.recv_handshake_record()
     sock.recv_handshake_record()
     sock.recv_handshake_record()
+    sock.recv_handshake_record()
 
 
 
