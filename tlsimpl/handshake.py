@@ -159,7 +159,7 @@ def recv_server_info(sock: client.TLSSocket) -> None:
     sock.recv_handshake_record()
     sock.recv_handshake_record()
     sock.recv_handshake_record()
-    sock.recv_handshake_record()
+    #sock.recv_handshake_record()
 
 
 
@@ -196,7 +196,7 @@ def perform_handshake(sock: client.TLSSocket) -> None:
     # receive an encrypted handshake record to verify decryption works
     print("got record:", sock.recv_handshake_record())
 
-    sock.send_record(RecordType.APPLICATION_DATA, b"hellohellooooooooooooooooooooooooo:)ooooooooooooo\n")
+    sock.send_record(RecordType.APPLICATION_DATA, b"hellohellooooooooooooooooooooooooo:)ooooooooooooo")
     
 
 # We don't need this lol there's a skeleton in cryptoimpl.py
