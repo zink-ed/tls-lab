@@ -196,6 +196,8 @@ def perform_handshake(sock: client.TLSSocket) -> None:
     # receive an encrypted handshake record to verify decryption works
     print("got record:", sock.recv_handshake_record())
 
+    sock.send_record(RecordType.APPLICATION_DATA, b"hellohelloooooooooooooooooooooooooooooooooooooo")
+
 # We don't need this lol there's a skeleton in cryptoimpl.py
 # def key_derivation(transcript_hash, shared_secret):
 
