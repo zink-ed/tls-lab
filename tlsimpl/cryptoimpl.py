@@ -76,7 +76,9 @@ class AESParams:
 
         Specified in RFC8446 section 5.3.
         """
-        nonce = b"???"
+        nonce = self.initial_nonce ^ self.seq_num
+        nonce = util.pack(nonce,12)
+        self.seq_num += 1
         # TODO: derive the nonce
         return nonce
 
@@ -102,13 +104,20 @@ def derive_handshake_params(
     Used for handshake key derivation.
     """
     # TODO: derive necessary secrets
-    handshake_secret = b"???"
-    client_secret = b"???"
-    server_secret = b"???"
-    client_key = b"???"
-    client_iv = b"???"
-    server_key = b"???"
-    server_iv = b"???"
+
+    early_secret = sha384_hkdf_extract(b'', b'\x00'*48)
+    empty_hash = hashlib.sha384(b'').digest()
+    hello_hash = transcript_hash
+
+    derived_secret = labeled_sha384_hkdf(early_secret, b"derived", empty_hash, 48)
+    handshake_secret = sha384_hkdf_extract(derived_secret, shared_secret)
+    client_secret = labeled_sha384_hkdf(handshake_secret, b"c hs traffic", hello_hash, 48)
+    server_secret = labeled_sha384_hkdf(handshake_secret, b"s hs traffic", hello_hash, 48)
+    client_key = labeled_sha384_hkdf(client_secret, b"key", b"", 32)
+    server_key = labeled_sha384_hkdf(server_secret, b"key", b"",32)
+    client_iv = labeled_sha384_hkdf(client_secret, b"iv", b"", 12)
+    server_iv = labeled_sha384_hkdf(server_secret, b"iv", b"", 12)
+
     client_params = AESParams(client_secret, client_key, util.unpack(client_iv))
     server_params = AESParams(server_secret, server_key, util.unpack(server_iv))
     return (handshake_secret, client_params, server_params)
@@ -141,6 +150,9 @@ def verify_cert(cert_der: bytes, cert_sig: bytes) -> bool:
     Signature should signed using RSA-PSS-RSAE-SHA256.
     """
     # TODO: verify certificate
+
+    # We are skipping this according to the slides
+
     return True
 
 
@@ -151,4 +163,8 @@ def compute_finish(secret: bytes, transcript_hash: bytes) -> bytes:
     Takes in the client/server secret as well as the transcript hash.
     """
     # TODO: compute HMAC
-    return b"???"
+    finished_key = labeled_sha384_hkdf(transcript_hash, b'finished', b'',48)
+    finished_hash = hashlib.sha384(finished_key).digest()
+    verify_data = b'' # This needs to be finished
+
+    return verify_data

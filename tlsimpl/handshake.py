@@ -156,6 +156,9 @@ def recv_server_info(sock: client.TLSSocket) -> None:
 
     Also verifies the certificate's validity.
     """
+    sock.recv_handshake_record()
+    sock.recv_handshake_record()
+    sock.recv_handshake_record()
     # TODO: implement
 
 
@@ -166,6 +169,8 @@ def finish_handshake(sock: client.TLSSocket, handshake_secret: bytes) -> None:
     Takes in the shared secret from key exchange.
     """
     # TODO: implement
+
+    
 
 
 def perform_handshake(sock: client.TLSSocket) -> None:
@@ -179,34 +184,44 @@ def perform_handshake(sock: client.TLSSocket) -> None:
     (handshake_secret, sock.client_params, sock.server_params) = (
         cryptoimpl.derive_handshake_params(shared_secret, transcript_hash)
     )
-<<<<<<< HEAD
+    recv_server_info(sock)
+    finish_handshake(sock, handshake_secret)
 
-    key_derivation()
+    # key_derivation()
 
     # receive an encrypted handshake record to verify decryption works
     print("got record:", sock.recv_handshake_record())
 
-def key_derivation(transcript_hash, shared_secret):
+# We don't need this lol there's a skeleton in cryptoimpl.py
+# def key_derivation(transcript_hash, shared_secret):
 
-    our_key = generate_x25519_keypair()
+#     our_key = generate_x25519_keypair()
 
-    early_secret = sha384_hkdf_extract(00, 00)
-    empty_hash = hashes.SHA384("")
-    hello_hash = transcript_hash
+#     early_secret = sha384_hkdf_extract(00, 00)
+#     empty_hash = hashes.SHA384("")
+#     hello_hash = transcript_hash
 
-    derived_secret = labeled_sha384_hkdf(early_secret, "derived", empty_hash, 48)
-    handshake_secret = sha384_hkdf_extract(derived_secret, shared_secret)
-    client_secret = labeled_sha384_hkdf(handshake_secret, "c hs traffic", hello_hash, 48)
-    server_secret = labeled_sha384_hkdf(handshake_secret, "s hs traffic", hello_hash, 48)
-    client_handshake_key = labeled_sha384_hkdf(client_secret, "key", "", 32)
-    server_handskae_key = labeled_sha384_hkdf(server_secret, "key", "",32)
-    client_handshake_iv = labeled_sha384_hkdf(client_secret, "iv", "", 12)
-    server_handshake_iv = labeled_sha384_hkdf(server_secret, "iv", "", 12)
+#     derived_secret = labeled_sha384_hkdf(early_secret, "derived", empty_hash, 48)
+#     handshake_secret = sha384_hkdf_extract(derived_secret, shared_secret)
+#     client_secret = labeled_sha384_hkdf(handshake_secret, "c hs traffic", hello_hash, 48)
+#     server_secret = labeled_sha384_hkdf(handshake_secret, "s hs traffic", hello_hash, 48)
+#     client_handshake_key = labeled_sha384_hkdf(client_secret, "key", "", 32)
+#     server_handskae_key = labeled_sha384_hkdf(server_secret, "key", "",32)
+#     client_handshake_iv = labeled_sha384_hkdf(client_secret, "iv", "", 12)
+#     server_handshake_iv = labeled_sha384_hkdf(server_secret, "iv", "", 12)
 
 
-=======
-    recv_server_info(sock)
-    finish_handshake(sock, handshake_secret)
-    # receive an encrypted record to make sure everything works
-    print(sock.recv_record())
->>>>>>> upstream/main
+# We also don't need this LOL it's written into client.py
+# def parsing_ciphertext(response):
+#     without_type = response[2:]
+#     length = without_type[0:2].int_from_bytes()
+#     without_type = without_type[2:]
+#     ciphertext = without_type[0:length]
+#     without_type = without_type[length:]
+#     tag = without_type[:16]
+
+# def decryption(ciphertext):
+#     ciphertext_with_length = pack_varlen(ciphertext,3)
+#     final_ciphertext = b'\x08' + ciphertext_with_length
+
+
